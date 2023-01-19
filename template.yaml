@@ -1,0 +1,527 @@
+Transform: AWS::Serverless-2016-10-31
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CREDIT_CALCULATION_PERIOD: 60
+        SPOT_WAIT_PERIOD: 3600
+        FOLDING_IDLE_WAIT_PERIOD: 180
+Resources:
+  vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/22
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: symbiote
+  igw:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: symbiote
+  igwAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref vpc
+      InternetGatewayId: !Ref igw
+  subnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: eu-central-1a
+      CidrBlock: 10.0.0.0/24
+      VpcId: !Ref vpc
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: symbioteA
+  subnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: eu-central-1b
+      CidrBlock: 10.0.1.0/24
+      VpcId: !Ref vpc
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: symbioteB
+  subnetC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: eu-central-1c
+      CidrBlock: 10.0.2.0/24
+      VpcId: !Ref vpc
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: symbioteC
+  routeTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpc
+      Tags:
+        - Key: Name
+          Value: symbiote
+  routeTablePub:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpc
+      Tags:
+        - Key: Name
+          Value: symbiotePub
+  routeToInternetGw:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref igw
+      RouteTableId: !Ref routeTablePub
+  routeTableSubnetAAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref routeTablePub
+      SubnetId: !Ref subnetA
+  routeTableSubnetBAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref routeTablePub
+      SubnetId: !Ref subnetB
+  routeTableSubnetCAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref routeTablePub
+      SubnetId: !Ref subnetC
+  securityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for folding.S.symbiote
+      Tags:
+        - Key: Name
+          Value: symbiote
+      VpcId: !Ref vpc
+  instanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Iam role for folding.S.symbiote
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSQSFullAccess
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+        - arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess
+      Policies:
+        - PolicyName: symbioteInstancePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: S3Read
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: "arn:aws:s3:::folding-S-symbiote/*"
+      RoleName: symbioteRole
+  instanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Path: /
+      Roles:
+        - !Ref instanceRole
+  start:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: start
+      CodeUri: src/start
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.9
+      MemorySize: 500
+      Timeout: 15
+      Tracing: Active
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref symbioteTable
+          TABLE_ARN: !GetAtt symbioteTable.Arn
+          SUBNET_A: !Ref subnetA
+          SUBNET_B: !Ref subnetB
+          SUBNET_C: !Ref subnetC
+          SEC_GROUP: !Ref securityGroup
+          INSTANCE_PROFILE: !GetAtt instanceProfile.Arn
+          QUEUE_URL: !GetAtt symbioteQueue.QueueUrl
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref symbioteTable
+        - SSMParameterReadPolicy:
+            ParameterName: aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+        - Statement:
+            - Sid: SSMParameterReadPolicy
+              Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource: "*"
+            - Sid: EC2SymbiotAccess
+              Effect: Allow
+              Action:
+                - ec2:DescribeSpotPriceHistory
+                - ec2:DescribeInstances
+                - ec2:RequestSpotInstances
+                - ec2:CreateTags
+                - ec2:RunInstances
+                - ec2:AssociateIamInstanceProfile
+              Resource: "*"
+            - Sid: PriceListAccess
+              Effect: Allow
+              Action: pricing:GetProducts
+              Resource: "*"
+            - Sid: IamPass
+              Effect: Allow
+              Action: iam:PassRole
+              Resource: !GetAtt instanceRole.Arn
+
+  status:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: status
+      CodeUri: src/status
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.9
+      MemorySize: 500
+      Timeout: 15
+      Tracing: Active
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref symbioteTable
+          TABLE_ARN: !GetAtt symbioteTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref symbioteTable
+        - Statement:
+            - Sid: EC2SymbiotAccess
+              Effect: Allow
+              Action:
+                - ec2:DescribeSpotPriceHistory
+                - ec2:DescribeInstances
+                - ec2:RequestSpotInstances
+                - ec2:CreateTags
+                - ec2:RunInstances
+                - ec2:AssociateIamInstanceProfile
+              Resource: "*"
+  pause:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: pause
+      CodeUri: src/pause
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.9
+      MemorySize: 500
+      Timeout: 15
+      Tracing: Active
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref symbioteTable
+          TABLE_ARN: !GetAtt symbioteTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref symbioteTable
+        - Statement:
+            - Sid: EC2SymbiotAccess
+              Effect: Allow
+              Action:
+                - ec2:StopInstances
+              Resource: "*"
+
+  revive:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: revive
+      CodeUri: src/revive
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.9
+      MemorySize: 500
+      Timeout: 15
+      Tracing: Active
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref symbioteTable
+          TABLE_ARN: !GetAtt symbioteTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref symbioteTable
+        - Statement:
+            - Sid: EC2SymbiotAccess
+              Effect: Allow
+              Action:
+                - ec2:StartInstances
+              Resource: "*"
+  terminate:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: terminate
+      CodeUri: src/terminate
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.9
+      MemorySize: 500
+      Timeout: 15
+      Tracing: Active
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref symbioteTable
+          TABLE_ARN: !GetAtt symbioteTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref symbioteTable
+        - Statement:
+            - Sid: EC2SymbiotAccess
+              Effect: Allow
+              Action:
+                - ec2:CancelSpot*
+                - ec2:TerminateInstances
+              Resource: "*"
+  watch:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: watch
+      CodeUri: src/watch
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.9
+      MemorySize: 500
+      Timeout: 15
+      Tracing: Active
+      Events:
+        symbioteQueue:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt symbioteQueue.Arn
+            BatchSize: 10
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref symbioteTable
+          TABLE_ARN: !GetAtt symbioteTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref symbioteTable
+  startLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${start}
+  StateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Definition:
+        StartAt: init
+        States:
+          init:
+            Type: Parallel
+            Branches:
+              - StartAt: 1_start
+                States:
+                  1_start:
+                    Type: Task
+                    Resource: arn:aws:states:::lambda:invoke
+                    Parameters:
+                      FunctionName: ${startArn}
+                      Payload.$: $
+                    Next: check_spot_availability
+                  check_spot_availability:
+                    Type: Choice
+                    Choices:
+                      - Variable: $.Payload.spot_available
+                        StringEquals: "true"
+                        Next: end_init
+                      - Variable: $.Payload.spot_available
+                        StringEquals: "false"
+                        Next: wait_for_spot
+                    Default: wait_for_spot
+                  wait_for_spot:
+                    Type: Wait
+                    SecondsPath: $.Payload.spot_wait
+                    Next: 1_start
+                  end_init:
+                    Type: Pass
+                    Result: Environment initialization started.
+                    ResultPath: $.message
+                    End: true
+            Next: fold
+          fold:
+            Type: Parallel
+            Branches:
+              - StartAt: 1_manage_input
+                States:
+                  1_manage_input:
+                    Type: Pass
+                    Parameters:
+                      Payload.$: $[0].Payload
+                    Next: wait_folding
+                  wait_folding:
+                    Type: Wait
+                    SecondsPath: $.Payload.credit_period
+                    Next: get_status
+                  get_status:
+                    Type: Task
+                    Resource: arn:aws:states:::lambda:invoke
+                    Parameters:
+                      FunctionName: ${statusArn}
+                      Payload.$: $
+                    Next: check_status
+                  check_status:
+                    Type: Choice
+                    Choices:
+                      - Variable: $.Payload.remaining_credit
+                        StringEquals: "0"
+                        Next: end_fold
+                      - Variable: $.Payload.system_status
+                        StringEquals: stopped
+                        Next: revive
+                      - Variable: $.Payload.system_status
+                        StringEquals: stopping
+                        Next: wait_folding
+                      - Variable: $.Payload.system_status
+                        StringEquals: rebooting
+                        Next: wait_folding
+                      - Variable: $.Payload.system_status
+                        StringEquals: shutting-down
+                        Next: wait_folding
+                      - Variable: $.Payload.system_status
+                        StringEquals: terminated
+                        Next: end_fold
+                      - Variable: $.Payload.folding_info.overall_status
+                        StringEquals: idle
+                        Next: pause
+                      - Variable: $.Payload.folding_info.overall_status
+                        StringEquals: initializing
+                        Next: wait_folding
+                    Default: wait_folding
+                  pause:
+                    Type: Task
+                    Resource: arn:aws:states:::lambda:invoke
+                    Parameters:
+                      FunctionName: ${pauseArn}
+                      Payload.$: $
+                    Next: pause_until_folding_is_idle
+                  pause_until_folding_is_idle:
+                    Type: Wait
+                    SecondsPath: $.Payload.idle_wait
+                    Next: revive
+                  revive:
+                    Type: Task
+                    Resource: arn:aws:states:::lambda:invoke
+                    Parameters:
+                      FunctionName: ${reviveArn}
+                      Payload.$: $
+                    Next: check_spot_availability_after_revive
+                  check_spot_availability_after_revive:
+                    Type: Choice
+                    Choices:
+                      - Variable: $.Payload.spot_available
+                        StringEquals: "true"
+                        Next: wait_folding
+                      - Variable: $.Payload.spot_available
+                        StringEquals: "false"
+                        Next: pause_until_folding_is_idle
+                    Default: pause_until_folding_is_idle
+                  end_fold:
+                    Type: Pass
+                    Result: Credit expired. Terminating folding instance.
+                    ResultPath: $.message
+                    End: true
+            Catch:
+              - ErrorEquals:
+                  - States.ALL
+                ResultPath: $.error
+                Next: terminate
+            Next: terminate
+          terminate:
+            Type: Task
+            Resource: arn:aws:states:::lambda:invoke
+            Parameters:
+              FunctionName: ${terminateArn}
+              Payload.$: $
+            End: true
+      Logging:
+        Level: ALL
+        IncludeExecutionData: true
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt StateMachineLogGroup.Arn
+      Policies:
+        - AWSXrayWriteOnlyAccess
+        - Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogDelivery
+                - logs:GetLogDelivery
+                - logs:UpdateLogDelivery
+                - logs:DeleteLogDelivery
+                - logs:ListLogDeliveries
+                - logs:PutResourcePolicy
+                - logs:DescribeResourcePolicies
+                - logs:DescribeLogGroups
+              Resource: "*"
+        - LambdaInvokePolicy:
+            FunctionName: !Ref start
+        - LambdaInvokePolicy:
+            FunctionName: !Ref status
+        - LambdaInvokePolicy:
+            FunctionName: !Ref pause
+        - LambdaInvokePolicy:
+            FunctionName: !Ref revive
+        - LambdaInvokePolicy:
+            FunctionName: !Ref terminate
+      Tracing:
+        Enabled: true
+      Type: STANDARD
+      DefinitionSubstitutions:
+        startArn: !GetAtt start.Arn
+        statusArn: !GetAtt status.Arn
+        pauseArn: !GetAtt pause.Arn
+        reviveArn: !GetAtt revive.Arn
+        terminateArn: !GetAtt terminate.Arn
+  StateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub
+        - /aws/vendedlogs/states/${AWS::StackName}-${ResourceId}-Logs
+        - ResourceId: StateMachine
+  pauseLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${pause}
+  symbioteTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: system_id
+          AttributeType: S
+        - AttributeName: system_ip
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: system_id
+          KeyType: HASH
+        - AttributeName: system_ip
+          KeyType: RANGE
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+  symbioteQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: symbiote

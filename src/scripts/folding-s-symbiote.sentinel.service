@@ -1,0 +1,10 @@
+[Unit]
+Description=folding.S.symbiote sentinel service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/bin/folding-s-symbiote.py
+
+[Install]
+WantedBy=multi-user.target 
