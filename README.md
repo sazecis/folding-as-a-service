@@ -7,10 +7,10 @@ Before deploying this SAM template, you will need to have the following tools in
 - [AWS CLI](https://aws.amazon.com/cli/)
 - [SAM CLI](https://aws.amazon.com/serverless/sam/)
 
-You will also need to configure your AWS credentials locally, by running aws configure and entering your Access Key and Secret Key.
+You will also need to configure your AWS credentials locally, by running `aws configure` and entering your Access Key and Secret Key.
 
 ## Deployment
-To deploy the Folding as a Service SAM template, run the following command:
+To deploy the Folding as a Service SAM template, run the following commands:
 
 ```
 sam build
@@ -29,6 +29,6 @@ After the deployment is complete, you can go to the AWS Management Console and l
 }
 ```
 
-The **"Credit"** field determines the amount of money you want to spend on the __Folding@home__ project, and the **"User"** field is an arbitrary name that you can use to identify your contributions. Once you have provided the input JSON, click "Start execution" to start the folding process.
+The **"Credit"** field determines the amount of money you want to spend on the __Folding@home__ project (use one of the predifined ones), and the **"User"** field is an arbitrary name that you can use to identify your contributions. Once you have provided the input JSON, click **Start execution** to start the folding process.
 
 Please note that you need to provide the input json document at the start of each execution.
