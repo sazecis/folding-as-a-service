@@ -12,15 +12,24 @@ You will also need to configure your AWS credentials locally, by running `aws co
 ## Deployment
 To deploy the Folding as a Service SAM template, run the following commands:
 
+Build
 ```
 sam build
+```
 
+First time deploy creating a configuration file storing the settings of the stack
+```
+sam deploy --capabilities CAPABILITY_NAMED_IAM --guided
+```
+
+Deploy
+```
 sam deploy --capabilities CAPABILITY_NAMED_IAM
 ```
 
 The `--capabilities CAPABILITY_NAMED_IAM` flag is necessary to allow the SAM template to create and manage IAM roles and policies during the deployment process.
 
-After the deployment is complete, you can go to the AWS Management Console and look for the FoldingStateMachine. Click on the link to open the state machine, and then click on the "Start execution" button. This will open a dialog where you can provide an input JSON document in the following format:
+After the deployment is complete, you can go to the AWS Management Console and look for the __FoldingStateMachine__ at the Step Functions AWS service. Click on the link to open the state machine, and then click on the "Start execution" button. This will open a dialog where you can provide an input JSON document in the following format:
 
 ```
 {
