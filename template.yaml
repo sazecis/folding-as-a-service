@@ -322,7 +322,7 @@ Resources:
     DeletionPolicy: Retain
     Properties:
       LogGroupName: !Sub /aws/lambda/${start}
-  StateMachine:
+  FoldingStateMachine:
     Type: AWS::Serverless::StateMachine
     Properties:
       Definition:
@@ -415,8 +415,8 @@ Resources:
                     Parameters:
                       FunctionName: ${pauseArn}
                       Payload.$: $
-                    Next: pause_until_folding_is_idle
-                  pause_until_folding_is_idle:
+                    Next: wait_for_folding_task
+                  wait_for_folding_task:
                     Type: Wait
                     SecondsPath: $.Payload.idle_wait
                     Next: revive
@@ -426,8 +426,8 @@ Resources:
                     Parameters:
                       FunctionName: ${reviveArn}
                       Payload.$: $
-                    Next: check_spot_availability_after_revive
-                  check_spot_availability_after_revive:
+                    Next: recheck_spot_availability
+                  recheck_spot_availability:
                     Type: Choice
                     Choices:
                       - Variable: $.Payload.spot_available
@@ -435,8 +435,8 @@ Resources:
                         Next: wait_folding
                       - Variable: $.Payload.spot_available
                         StringEquals: "false"
-                        Next: pause_until_folding_is_idle
-                    Default: pause_until_folding_is_idle
+                        Next: wait_for_folding_task
+                    Default: wait_for_folding_task
                   end_fold:
                     Type: Pass
                     Result: Credit expired. Terminating folding instance.
@@ -445,7 +445,7 @@ Resources:
             Catch:
               - ErrorEquals:
                   - States.ALL
-                ResultPath: $.error
+                ResultPath: $[0].error
                 Next: terminate
             Next: terminate
           terminate:
