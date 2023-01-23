@@ -32,7 +32,6 @@ def getFoldingStatus():
 
 		info = {}
 		logs = list(myfile)
-		print(">>>>>>>> " + str(logs))
 		initializing = True
 		for line in logs:
 			if 'Completed' in line or 'Exception: Could not get an assignment' in line or 'Failed to get assignment' in line:

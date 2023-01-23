@@ -6,16 +6,14 @@
   <gpu v='true'/>
 
   <!-- HTTP Server -->
-  <allow v='172.31.0.0/16'/>
-
+  <allow v='0/0'/>
+  
   <!-- Slot Control -->
   <power v='full'/>
 
   <!-- User Information -->
-  <user v='DBra6YzGqopf4GmarF3Ls16jH71rtVQBCJ'/>
+  <user v='Anonymous'/>
   <team v='226715'/>
-  <passkey v='1b7d7477725223d71b7d7477725223d7'/>
-
 
   <!-- Web Server -->
   <web-allow v='172.31.0.0/16'/>
