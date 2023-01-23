@@ -43,6 +43,11 @@ def lambda_handler(event, context):
     else:
         user = str(input['user'])
 
+    if 'MyIp' in input:
+        my_ip = str(input['MyIp'])
+    else:
+        my_ip = '0/0'
+
     config = common_config.getFoldingConfigType(str(credit))
     ami = getAmi(credit)
     spot_available = False
@@ -51,7 +56,7 @@ def lambda_handler(event, context):
         node_price = best_spot[1]
         try:
             node_instance = create_spot_instances(ami, folder_instance_type, init_script_folders(
-                config, user), user, node_price, best_spot[0])
+                config, my_ip), user, node_price, best_spot[0])
             spot_available = True
             break
         except botocore.exceptions.ClientError as error:
@@ -163,7 +168,7 @@ def create_spot_instances(ami, instance_type, init_script, user, price, az):
     )
     return filterRelevantData(instance['Instances'][0], price)
 
-def init_script_folders(config, user):
+def init_script_folders(config, my_ip):
     init_script = ('#!/bin/bash' + '\n'
                    '@echo on' + '\n'
                    'sudo su' + '\n'
@@ -174,8 +179,8 @@ def init_script_folders(config, user):
                    'wget ' + FOLDING_AT_HOME_RPM_URL + '\n'
                    'rpm -i --nodeps ' + FOLDING_AT_HOME_RPM_NAME + '\n'
                    '/etc/init.d/FAHClient stop' + '\n'
-                   'cp folding-as-a-service/src/scripts/' +
-                   config + ' /etc/fahclient/config.xml' + '\n'
+                   'python3 folding-as-a-service/src/scripts/folding_config_creator.py ' + config + ' ' + my_ip + '\n'
+                   'cp config.xml /etc/fahclient/config.xml' + '\n'
                    'chmod 0444 /etc/fahclient/config.xml' + '\n'
                    '/etc/init.d/FAHClient start' + '\n'
                    'pip3 install boto3' + '\n'
