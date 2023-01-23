@@ -20,27 +20,12 @@ MAP_KEY_INSTANCE_TYPE = 'instance_type'
 MAP_KEY_FOLDING_TYPE = 'folding_type'
 
 folding_config = {
-    'eu-north-1': {
-        KEY: "stockholm",
-        SG_NODE: 'sg-04ae3066b82012a4f',
-        SUBNET: {
-            'eu-central-1a': 'subnet-0a2792d885063a965',
-            'eu-central-1b': 'subnet-01379ab4c7569b6a1',
-            'eu-central-1c': 'subnet-07597e07f14481e28'
-        }
-    },
-    'eu-west-1': {
-        KEY: "ireland",
-        SG_NODE: 'sg-042e10b7535782ae1',
-        SUBNET: 'subnet-0588f024270d5d302',
-    },
-    'eu-central-1': {
-        KEY: "frankfurt",
+    REGION: {
         SG_NODE: os.environ['SEC_GROUP'],
         SUBNET: {
-            'eu-central-1a': os.environ['SUBNET_A'],
-            'eu-central-1b': os.environ['SUBNET_B'],
-            'eu-central-1c': os.environ['SUBNET_C']
+            REGION + 'a': os.environ['SUBNET_A'],
+            REGION + 'b': os.environ['SUBNET_B'],
+            REGION + 'c': os.environ['SUBNET_C']
         },
     }
 }
@@ -67,10 +52,6 @@ credit_map = {
         MAP_KEY_FOLDING_TYPE: FOLDING_TYPE_CPU_GPU
     }
 }
-
-
-def getKey():
-    return folding_config[REGION][KEY]
 
 
 def getNodeSecurityGroup():

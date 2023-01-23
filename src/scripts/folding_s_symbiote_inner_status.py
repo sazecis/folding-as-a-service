@@ -30,7 +30,6 @@ def getFoldingStatus():
 			NO_JOB + GPU: None
 		}
 
-
 		info = {}
 		logs = list(myfile)
 		print(">>>>>>>> " + str(logs))

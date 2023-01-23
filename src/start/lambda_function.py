@@ -114,7 +114,6 @@ def create_spot_instances(ami, instance_type, init_script, user, price, az):
         InstanceType=instance_type,
         MinCount=1,
         MaxCount=1,
-        KeyName=common_config.getKey(),
         SecurityGroupIds=[
             common_config.getNodeSecurityGroup(),
         ],
@@ -166,12 +165,16 @@ def create_spot_instances(ami, instance_type, init_script, user, price, az):
 
 def init_script_folders(config, user):
     init_script = ('#!/bin/bash' + '\n'
-                   '@echo on'
+                   '@echo on' + '\n'
                    'sudo su' + '\n'
+                   'yum -y install git' + '\n'
+                   'mkdir /usr/bin/faas' + '\n'
+                   'cd /usr/bin/faas' + '\n'
+                   'git clone https://github.com/sazecis/folding-as-a-service.git' + '\n'
                    'wget ' + FOLDING_AT_HOME_RPM_URL + '\n'
                    'rpm -i --nodeps ' + FOLDING_AT_HOME_RPM_NAME + '\n'
                    '/etc/init.d/FAHClient stop' + '\n'
-                   '/usr/bin/aws s3 cp s3://folding-s-parasite/' + \
+                   'cp folding-as-a-service/src/scripts/' +
                    config + ' /etc/fahclient/config.xml' + '\n'
                    'chmod 0444 /etc/fahclient/config.xml' + '\n'
                    '/etc/init.d/FAHClient start' + '\n'
@@ -182,10 +185,10 @@ def init_script_folders(config, user):
                    'echo \"QUEUE_URL=\'' + QUEUE_URL + '\'\" >> /usr/bin/foldingenv.py' + '\n'
                    'echo \"FOLDER=\'' + user + '\'\" >> /usr/bin/foldingenv.py' + '\n'
                    'echo \"INSTANCE_ID=\'$instance_id\'\" >> /usr/bin/foldingenv.py' + '\n'
-                   '/usr/bin/aws s3 cp s3://folding-s-parasite/folding-s-symbiote.py /usr/bin/folding-s-symbiote.py' + '\n'
-                   '/usr/bin/aws s3 cp s3://folding-s-parasite/folding_s_symbiote_inner_status.py /usr/bin/folding_s_symbiote_inner_status.py' + '\n'
+                   'cp folding-as-a-service/src/scripts/folding-s-symbiote.py /usr/bin/folding-s-symbiote.py' + '\n'
+                   'cp folding-as-a-service/src/scripts/folding_s_symbiote_inner_status.py /usr/bin/folding_s_symbiote_inner_status.py' + '\n'
                    'chmod 755 /usr/bin/folding-s-symbiote.py' + '\n'
-                   '/usr/bin/aws s3 cp s3://folding-s-parasite/folding-s-symbiote.sentinel.service /lib/systemd/system/folding-s-symbiote.sentinel.service' + '\n'
+                   'cp folding-as-a-service/src/scripts/folding-s-symbiote.sentinel.service /lib/systemd/system/folding-s-symbiote.sentinel.service' + '\n'
                    'systemctl daemon-reload' + '\n'
                    'systemctl enable --now --no-block folding-s-symbiote.sentinel.service' + '\n'
                    'sleep 10' + '\n'

@@ -29,7 +29,10 @@ Resources:
   subnetA:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: eu-central-1a
+      AvailabilityZone: !Join
+        - ""
+        - - !Ref AWS::Region
+          - "a"
       CidrBlock: 10.0.0.0/24
       VpcId: !Ref vpc
       MapPublicIpOnLaunch: true
@@ -39,7 +42,10 @@ Resources:
   subnetB:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: eu-central-1b
+      AvailabilityZone: !Join
+        - ""
+        - - !Ref AWS::Region
+          - "b"
       CidrBlock: 10.0.1.0/24
       VpcId: !Ref vpc
       MapPublicIpOnLaunch: true
@@ -49,7 +55,10 @@ Resources:
   subnetC:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: eu-central-1c
+      AvailabilityZone: !Join
+        - ""
+        - - !Ref AWS::Region
+          - "c"
       CidrBlock: 10.0.2.0/24
       VpcId: !Ref vpc
       MapPublicIpOnLaunch: true
@@ -126,7 +135,6 @@ Resources:
                 Action:
                   - s3:GetObject
                 Resource: "arn:aws:s3:::folding-S-symbiote/*"
-      RoleName: symbioteRole
   instanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:
