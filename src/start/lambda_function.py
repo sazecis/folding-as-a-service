@@ -56,7 +56,7 @@ def lambda_handler(event, context):
         node_price = best_spot[1]
         try:
             node_instance = create_spot_instances(ami, folder_instance_type, init_script_folders(
-                config, my_ip), user, node_price, best_spot[0])
+                config, user, my_ip), user, node_price, best_spot[0])
             spot_available = True
             break
         except botocore.exceptions.ClientError as error:
@@ -168,7 +168,7 @@ def create_spot_instances(ami, instance_type, init_script, user, price, az):
     )
     return filterRelevantData(instance['Instances'][0], price)
 
-def init_script_folders(config, my_ip):
+def init_script_folders(config, user, my_ip):
     init_script = ('#!/bin/bash' + '\n'
                    '@echo on' + '\n'
                    'sudo su' + '\n'
