@@ -17,9 +17,10 @@ def update_item_data(item):
             'system_id': item['system_id'],
             'system_ip': item['system_ip']
         },
-        UpdateExpression='set remaining_credit= :r',
+        UpdateExpression='set remaining_credit= :r, instance_data.PublicIpAddress= :ip',
         ExpressionAttributeValues={
             ':r': item['remaining_credit'],
+            ':ip': item['instance_data']['PublicIpAddress']
         },
         ReturnValues="UPDATED_NEW"
     )
