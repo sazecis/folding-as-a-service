@@ -43,10 +43,7 @@ def lambda_handler(event, context):
     else:
         user = str(input['user'])
 
-    if 'MyIp' in input:
-        my_ip = str(input['MyIp'])
-    else:
-        my_ip = '0/0'
+    my_ip = os.environ['MY_IP']
 
     config = common_config.getFoldingConfigType(str(credit))
     ami = getAmi(credit)

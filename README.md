@@ -19,12 +19,12 @@ sam build
 
 First time deploy creating a configuration file storing the settings of the stack
 ```
-sam deploy --capabilities CAPABILITY_NAMED_IAM --guided
+sam deploy --capabilities CAPABILITY_NAMED_IAM --guided --parameter-overrides ParameterKey=MyIp,ParameterValue=<MyIp CIDR range>
 ```
 
 Deploy
 ```
-sam deploy --capabilities CAPABILITY_NAMED_IAM
+sam deploy --capabilities CAPABILITY_NAMED_IAM --parameter-overrides ParameterKey=MyIp,ParameterValue=<MyIp CIDR range>
 ```
 
 The `--capabilities CAPABILITY_NAMED_IAM` flag is necessary to allow the SAM template to create and manage IAM roles and policies during the deployment process.

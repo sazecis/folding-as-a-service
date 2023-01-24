@@ -6,6 +6,10 @@ Globals:
         CREDIT_CALCULATION_PERIOD: 60
         SPOT_WAIT_PERIOD: 3600
         FOLDING_IDLE_WAIT_PERIOD: 180
+Parameters:
+  MyIp:
+    Type: String
+    Default: 0/0
 Resources:
   vpc:
     Type: AWS::EC2::VPC
@@ -106,9 +110,13 @@ Resources:
       GroupDescription: Security group for folding.S.symbiote
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
+          FromPort: 7396
+          ToPort: 7396
+          CidrIp: !Ref MyIp
+        - IpProtocol: tcp
+          FromPort: 36330
+          ToPort: 36330
+          CidrIp: !Ref MyIp
       Tags:
         - Key: Name
           Value: symbiote
@@ -168,6 +176,7 @@ Resources:
           SEC_GROUP: !Ref securityGroup
           INSTANCE_PROFILE: !GetAtt instanceProfile.Arn
           QUEUE_URL: !GetAtt symbioteQueue.QueueUrl
+          MY_IP: !Ref MyIp
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref symbioteTable
