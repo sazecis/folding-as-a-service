@@ -13,7 +13,7 @@ CREDIT_TYPE_2 = '3'
 CREDIT_TYPE_3 = '5'
 CREDIT_TYPE_4 = '10'
 
-FOLDING_TYPE_CPU = "only_cpu"
+FOLDING_TYPE_CPU = 'only_cpu'
 FOLDING_TYPE_CPU_GPU = 'cpu_gpu'
 
 MAP_KEY_INSTANCE_TYPE = 'instance_type'
@@ -67,7 +67,7 @@ def getFolderInstanceType(credit):
 
 
 def getFoldingConfigType(credit):
-    return 'config_' + credit_map[credit][MAP_KEY_FOLDING_TYPE] + '.xml'
+    return credit_map[credit][MAP_KEY_FOLDING_TYPE]
 
 def getTableName():
     return os.environ['TABLE_NAME']

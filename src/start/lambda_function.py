@@ -52,7 +52,7 @@ def lambda_handler(event, context):
         best_spot = available_spot
         node_price = best_spot[1]
         try:
-            node_instance = create_spot_instances(ami, folder_instance_type, init_script_folders(
+            node_instance = create_spot_instances(ami, folder_instance_type, generate_ec2_user_data(
                 config, user, my_ip), user, node_price, best_spot[0])
             spot_available = True
             break
@@ -165,7 +165,7 @@ def create_spot_instances(ami, instance_type, init_script, user, price, az):
     )
     return filterRelevantData(instance['Instances'][0], price)
 
-def init_script_folders(config, user, my_ip):
+def generate_ec2_user_data(config, user, my_ip):
     init_script = ('#!/bin/bash' + '\n'
                    '@echo on' + '\n'
                    'sudo su' + '\n'
@@ -175,11 +175,6 @@ def init_script_folders(config, user, my_ip):
                    'git clone https://github.com/sazecis/folding-as-a-service.git' + '\n'
                    'wget ' + FOLDING_AT_HOME_RPM_URL + '\n'
                    'rpm -i --nodeps ' + FOLDING_AT_HOME_RPM_NAME + '\n'
-                   '/etc/init.d/FAHClient stop' + '\n'
-                   'python3 folding-as-a-service/src/scripts/folding_config_creator.py ' + config + ' ' + my_ip + '\n'
-                   'cp config.xml /etc/fahclient/config.xml' + '\n'
-                   'chmod 0444 /etc/fahclient/config.xml' + '\n'
-                   '/etc/init.d/FAHClient start' + '\n'
                    'pip3 install boto3' + '\n'
                    'aws configure set default.region ' + common_config.REGION + '\n'
                    'instance_id=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)' + '\n'
@@ -193,7 +188,11 @@ def init_script_folders(config, user, my_ip):
                    'cp folding-as-a-service/src/scripts/folding-s-symbiote.sentinel.service /lib/systemd/system/folding-s-symbiote.sentinel.service' + '\n'
                    'systemctl daemon-reload' + '\n'
                    'systemctl enable --now --no-block folding-s-symbiote.sentinel.service' + '\n'
-                   'sleep 10' + '\n'
+                   'sleep 90' + '\n'
+                   'python3 folding-as-a-service/src/scripts/folding_config_creator.py ' +
+                   config + ' ' + my_ip + '\n'
+                   'cp config.xml /etc/fahclient/config.xml' + '\n'
+                   'systemctl restart FAHClient.service' + '\n'
                    'reboot' + '\n'
                    )
     return init_script
@@ -201,9 +200,23 @@ def init_script_folders(config, user, my_ip):
 
 def getAmi(credit):
     if credit > 3:
-        return 'ami-0b88c2f986a9d4947'  # deepofficial
+        return getGpuAmi()
 
     responsessm = ssm.get_parameter(
         Name='/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
     )
     return str(responsessm['Parameter']['Value'])
+
+
+def getGpuAmi():
+    result = ec2.describe_images(
+        Filters=[
+            {
+                'Name': 'name',
+                'Values': ['Deep Learning AMI GPU TensorFlow*Amazon Linux 2*']
+            }
+        ]
+    )
+    newlist = sorted(result['Images'],
+                     key=lambda d: d['CreationDate'], reverse=True)
+    return newlist[0]['ImageId']
