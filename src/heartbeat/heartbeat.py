@@ -36,6 +36,6 @@ def alive(item):
     now = datetime.strptime(datetime.now(tz=pytz.UTC).strftime(FORMAT), FORMAT)
     last = datetime.strptime(get_heartbeat(item), FORMAT)
     difference = now - last
-    if difference.seconds > 180:
+    if difference.seconds > 3600:
         return False
     return True
