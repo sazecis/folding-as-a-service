@@ -41,3 +41,9 @@ After the deployment is complete, you can go to the AWS Management Console and l
 The **"Credit"** field determines the amount of money you want to spend on the __Folding@home__ project (use one of the predifined ones), and the **"User"** field is an arbitrary name that you can use to identify your contributions. Once you have provided the input JSON, click **Start execution** to start the folding process.
 
 Please note that you need to provide the input json document at the start of each execution.
+
+## Troubleshooting
+
+### MaxSpotInstanceCountExceeded - no available g4 instances
+It might be that you need to request a quota increase for your **g4** instances when your StepFunction stucks in the __init__ section. Do that from your AWS Management Console by searching for **ServiceQuotas** or go at: [](console.aws.amazon.com/servicequotas)
+Request an increase to **20** at __Amazon Elastic Compute Cloud (Amazon EC2)__ for: **All G and VT Spot Instance Requests**.
