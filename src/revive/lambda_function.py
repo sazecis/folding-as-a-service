@@ -19,6 +19,7 @@ def lambda_handler(event, context):
             print(error)
             if "InsufficientInstanceCapacity" in str(error):
                 item['spot_available'] = 'false'
+                item['idle_wait'] = os.environ['FOLDING_IDLE_WAIT_PERIOD']
                 return item
 
     item['spot_available'] = 'true'
