@@ -19,7 +19,6 @@ PRIVATE_IP_ADDRESS = 'PrivateIpAddress'
 ec2 = boto3.client('ec2', region_name=common_config.REGION)
 ssm = boto3.client('ssm')
 
-
 def lambda_handler(event, context):
     print(event)
     input = event
@@ -47,7 +46,7 @@ def lambda_handler(event, context):
     my_ip = os.environ['MY_IP']
 
     config = common_config.getFoldingConfigType(str(credit))
-    ami = getAmi(credit)
+    ami = get_ami(credit)
     spot_available = False
     for available_spot in spot.get_spot_prices(folder_instance_type).items():
         best_spot = available_spot
@@ -89,27 +88,27 @@ def lambda_handler(event, context):
     return system_info
 
 
-def filterRelevantData(instance_data, price):
+def filter_relevant_data(instance_data, price):
     print(instance_data)
     data = {
-        'InstanceId': checkForEmptyObject(instance_data['InstanceId']),
-        'InstanceType': checkForEmptyObject(instance_data['InstanceType']),
-        'LaunchTime': checkForEmptyObject(instance_data['LaunchTime']).__str__(),
-        'PrivateIpAddress': checkForEmptyObject(instance_data['PrivateIpAddress']),
+        'InstanceId': check_for_empty_object(instance_data['InstanceId']),
+        'InstanceType': check_for_empty_object(instance_data['InstanceType']),
+        'LaunchTime': check_for_empty_object(instance_data['LaunchTime']).__str__(),
+        'PrivateIpAddress': check_for_empty_object(instance_data['PrivateIpAddress']),
         'Price': price,
-        'PublicIpAddress': getItemFromDictionary(instance_data, 'PublicIpAddress'),
-        'SpotInstanceRequestId': getItemFromDictionary(instance_data, 'SpotInstanceRequestId')
+        'PublicIpAddress': get_item_from_dictionary(instance_data, 'PublicIpAddress'),
+        'SpotInstanceRequestId': get_item_from_dictionary(instance_data, 'SpotInstanceRequestId')
     }
 
     return data
 
-def checkForEmptyObject(object):
+def check_for_empty_object(object):
     if object is None:
         return 'NA'
     else:
         return object
 
-def getItemFromDictionary(dictionary, item):
+def get_item_from_dictionary(dictionary, item):
     if item in dictionary:
         return dictionary[item]
     return 'NA'
@@ -167,7 +166,7 @@ def create_spot_instances(ami, instance_type, init_script, user, price, az):
         ],
         UserData=init_script
     )
-    return filterRelevantData(instance['Instances'][0], price)
+    return filter_relevant_data(instance['Instances'][0], price)
 
 def generate_ec2_user_data(config, user, my_ip):
     init_script = ('#!/bin/bash' + '\n'
@@ -202,9 +201,9 @@ def generate_ec2_user_data(config, user, my_ip):
     return init_script
 
 
-def getAmi(credit):
+def get_ami(credit):
     if credit > 3:
-        return getGpuAmi()
+        return get_gpu_ami()
 
     responsessm = ssm.get_parameter(
         Name='/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
@@ -212,7 +211,7 @@ def getAmi(credit):
     return str(responsessm['Parameter']['Value'])
 
 
-def getGpuAmi():
+def get_gpu_ami():
     result = ec2.describe_images(
         Filters=[
             {

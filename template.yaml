@@ -154,10 +154,10 @@ Resources:
       Path: /
       Roles:
         - !Ref instanceRole
-  heartbeat:
+  lib:
     Type: AWS::Serverless::LayerVersion
     Properties:
-      ContentUri: src/heartbeat
+      ContentUri: src/lib
       CompatibleRuntimes:
         - python3.9
     Metadata:
@@ -175,7 +175,7 @@ Resources:
       Timeout: 15
       Tracing: Active
       Layers:
-        - !Ref heartbeat
+        - !Ref lib
       Environment:
         Variables:
           TABLE_NAME: !Ref symbioteTable
@@ -231,7 +231,7 @@ Resources:
       Timeout: 15
       Tracing: Active
       Layers:
-        - !Ref heartbeat
+        - !Ref lib
       Environment:
         Variables:
           TABLE_NAME: !Ref symbioteTable
@@ -263,7 +263,7 @@ Resources:
       Timeout: 15
       Tracing: Active
       Layers:
-        - !Ref heartbeat
+        - !Ref lib
       Environment:
         Variables:
           TABLE_NAME: !Ref symbioteTable
@@ -291,7 +291,7 @@ Resources:
       Timeout: 15
       Tracing: Active
       Layers:
-        - !Ref heartbeat
+        - !Ref lib
       Environment:
         Variables:
           TABLE_NAME: !Ref symbioteTable
@@ -318,7 +318,7 @@ Resources:
       Timeout: 15
       Tracing: Active
       Layers:
-        - !Ref heartbeat
+        - !Ref lib
       Environment:
         Variables:
           TABLE_NAME: !Ref symbioteTable
@@ -346,7 +346,7 @@ Resources:
       Timeout: 15
       Tracing: Active
       Layers:
-        - !Ref heartbeat
+        - !Ref lib
       Events:
         symbioteQueue:
           Type: SQS

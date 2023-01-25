@@ -12,7 +12,7 @@ def lambda_handler(event, context):
     record = jsonify(event['Records'][0]['body'])
     print(record)
     dynamo.update_system_status(record)
-    item = dynamo.get_item_data(record)
+    item = dynamo.get_system_data(record)
     if heartbeat.alive(item):
         print('System still functioning with normal parameters')
     else:

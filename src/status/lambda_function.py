@@ -13,7 +13,7 @@ PUBLIC_IP = 'PublicIpAddress'
 
 def lambda_handler(event, context):
     print(event)
-    item = dynamo.get_item_data(event['Payload'])
+    item = dynamo.get_system_data(event['Payload'])
 
     instance_data = ec2.getInstanceDetailedData(item[INSTANCE_DATA])
     node_state = ec2.getInstanceState(instance_data)
@@ -25,7 +25,7 @@ def lambda_handler(event, context):
     item[SYSTEM_STATUS] = node_state
     item[INSTANCE_DATA][PUBLIC_IP] = public_ip
 
-    dynamo.update_item_data(item)
+    dynamo.update_credit_and_public_ip(item)
 
     item['credit_period'] = os.environ['CREDIT_CALCULATION_PERIOD']
     if 'ERROR_TEST' in os.environ and os.environ['ERROR_TEST']:
