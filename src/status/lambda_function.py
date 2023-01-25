@@ -3,6 +3,7 @@ import decimal
 import dynamo
 import credit
 import ec2
+import heartbeat
 
 REMAINING_CREDIT = 'remaining_credit'
 INSTANCE_DATA = 'instance_data'
@@ -29,5 +30,8 @@ def lambda_handler(event, context):
     item['credit_period'] = os.environ['CREDIT_CALCULATION_PERIOD']
     if 'ERROR_TEST' in os.environ and os.environ['ERROR_TEST']:
         raise Exception('Test exception')
+    
+    heartbeat.send_hearthbeat(item)
+
     print(item)
     return item

@@ -154,6 +154,14 @@ Resources:
       Path: /
       Roles:
         - !Ref instanceRole
+  heartbeat:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      ContentUri: src/heartbeat
+      CompatibleRuntimes:
+        - python3.9
+    Metadata:
+      BuildMethod: python3.9
   start:
     Type: AWS::Serverless::Function
     Properties:
@@ -166,6 +174,8 @@ Resources:
       MemorySize: 500
       Timeout: 15
       Tracing: Active
+      Layers:
+        - !Ref heartbeat
       Environment:
         Variables:
           TABLE_NAME: !Ref symbioteTable
@@ -220,6 +230,8 @@ Resources:
       MemorySize: 500
       Timeout: 15
       Tracing: Active
+      Layers:
+        - !Ref heartbeat
       Environment:
         Variables:
           TABLE_NAME: !Ref symbioteTable
@@ -250,6 +262,8 @@ Resources:
       MemorySize: 500
       Timeout: 15
       Tracing: Active
+      Layers:
+        - !Ref heartbeat
       Environment:
         Variables:
           TABLE_NAME: !Ref symbioteTable
@@ -276,6 +290,8 @@ Resources:
       MemorySize: 500
       Timeout: 15
       Tracing: Active
+      Layers:
+        - !Ref heartbeat
       Environment:
         Variables:
           TABLE_NAME: !Ref symbioteTable
@@ -301,6 +317,8 @@ Resources:
       MemorySize: 500
       Timeout: 15
       Tracing: Active
+      Layers:
+        - !Ref heartbeat
       Environment:
         Variables:
           TABLE_NAME: !Ref symbioteTable
@@ -327,6 +345,8 @@ Resources:
       MemorySize: 500
       Timeout: 15
       Tracing: Active
+      Layers:
+        - !Ref heartbeat
       Events:
         symbioteQueue:
           Type: SQS
@@ -340,6 +360,13 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref symbioteTable
+        - Statement:
+            - Sid: EC2SymbiotAccess
+              Effect: Allow
+              Action:
+                - ec2:CancelSpot*
+                - ec2:TerminateInstances
+              Resource: "*"
   startLogGroup:
     Type: AWS::Logs::LogGroup
     DeletionPolicy: Retain

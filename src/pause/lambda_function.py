@@ -1,7 +1,7 @@
 import boto3
-import json
 import os
 import dynamo
+import heartbeat
 
 REGION = os.environ['AWS_REGION']
 
@@ -16,4 +16,7 @@ def lambda_handler(event, context):
         )
     item = dynamo.pause_system(item)
     item['idle_wait'] = os.environ['FOLDING_IDLE_WAIT_PERIOD']
+
+    heartbeat.send_hearthbeat(item)
+
     return item

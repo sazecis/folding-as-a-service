@@ -2,14 +2,17 @@ import boto3
 import json
 import os
 import dynamo
+import heartbeat
 
 REGION = os.environ['AWS_REGION']
 
 ec2 = boto3.client('ec2', region_name=REGION)
 
 def lambda_handler(event, context):
-    print(event[0])
+    print(event[0])    
     item = event[0]['Payload']
+    heartbeat.send_hearthbeat(item)
+
     if 'SpotInstanceRequestId' in item['instance_data']:
         spot_request_id = [item['instance_data']
                            ['SpotInstanceRequestId']]

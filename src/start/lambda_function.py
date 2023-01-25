@@ -5,6 +5,7 @@ import common_config
 import spot
 import dynamo
 import decimal
+import heartbeat
 
 EMAIL = 'test@test.test'
 PROJECT = 'folding.S.symbiote'
@@ -82,6 +83,9 @@ def lambda_handler(event, context):
         system_info['credit_period'] = os.environ['CREDIT_CALCULATION_PERIOD']
     else:
         system_info['credit_period'] = input['period']
+
+    heartbeat.send_hearthbeat(system_info)
+
     return system_info
 
 

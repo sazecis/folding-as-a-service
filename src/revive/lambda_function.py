@@ -2,6 +2,7 @@ import botocore
 import boto3
 import os
 import dynamo
+import heartbeat
 
 REGION = os.environ['AWS_REGION']
 
@@ -24,5 +25,10 @@ def lambda_handler(event, context):
 
     item['spot_available'] = 'true'
     item['credit_period'] = os.environ['CREDIT_CALCULATION_PERIOD']
-    return dynamo.revive_system(item)
+    
+    system_info = dynamo.revive_system(item)
+    heartbeat.send_hearthbeat(system_info)
+
+    return system_info
+
     
