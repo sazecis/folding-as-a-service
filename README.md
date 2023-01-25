@@ -45,5 +45,5 @@ Please note that you need to provide the input json document at the start of eac
 ## Troubleshooting
 
 ### MaxSpotInstanceCountExceeded - no available g4 instances
-It might be that you need to request a quota increase for your **g4** instances when your StepFunction stucks in the __init__ section. Do that from your AWS Management Console by searching for **ServiceQuotas** or go at: <console.aws.amazon.com/servicequotas>
+It might be that you need to request a quota increase for your **g4** instances when your StepFunction stucks in the __init__ section. Do that from your AWS Management Console by searching for **ServiceQuotas** or go at: <https://console.aws.amazon.com/servicequotas>
 Request an increase to **20** at __Amazon Elastic Compute Cloud (Amazon EC2)__ for: **All G and VT Spot Instance Requests**.
