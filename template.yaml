@@ -3,9 +3,9 @@ Globals:
   Function:
     Environment:
       Variables:
-        CREDIT_CALCULATION_PERIOD: 60
+        CREDIT_CALCULATION_PERIOD: 300
         SPOT_WAIT_PERIOD: 3600
-        FOLDING_IDLE_WAIT_PERIOD: 180
+        FOLDING_IDLE_WAIT_PERIOD: 1800
 Parameters:
   MyIp:
     Type: String
