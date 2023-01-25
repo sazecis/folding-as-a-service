@@ -374,7 +374,9 @@ Resources:
       LogGroupName: !Sub /aws/lambda/${start}
   FoldingStateMachine:
     Type: AWS::Serverless::StateMachine
+    Description: Step Function to orchestrate the folding@home server in AWS cloud.
     Properties:
+      Tracing: Active
       Definition:
         StartAt: init
         States:
