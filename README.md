@@ -42,6 +42,28 @@ The **"Credit"** field determines the amount of money you want to spend on the _
 
 Please note that you need to provide the input json document at the start of each execution.
 
+### CPU
+
+Selecting credit 1 or 3 will create you an EC2 Spot instance only with CPU available for folding.
+
+### GPU
+
+Selecting credit 5 or 10 will crete you an EC2 Spot instance with CPU and GPU capable foldings.
+
+## Seeing the results
+
+To see your folding result you will need to look up the public IP address of your EC2 instance.
+
+### Management console
+
+On the daschboard of EC2 you can search for a running instance with the same name as the following: `folding.S.symbiote.<arbitrary user name>`. The `<arbitrary user name>` was provided by you at `StepFunction` start.
+Select the instance and on the `Details` tab look for the `Public IPv4 address` value. Copy the IP to the clipboard.
+In a new browser tab past the copied IP into the address bar and add port `7396` to it:
+```
+x.x.x.x:7396
+```
+And that's it you will see the Folding@home up and running.
+
 ## Troubleshooting
 
 ### MaxSpotInstanceCountExceeded - no available g4 instances
