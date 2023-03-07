@@ -47,3 +47,18 @@ Please note that you need to provide the input json document at the start of eac
 ### MaxSpotInstanceCountExceeded - no available g4 instances
 It might be that you need to request a quota increase for your **g4** instances when your StepFunction stucks in the __init__ section. Do that from your AWS Management Console by searching for **ServiceQuotas** or go at: <https://console.aws.amazon.com/servicequotas> url. Remember to select the region where you want your quota to be increased.
 Request an increase to **20** at __Amazon Elastic Compute Cloud (Amazon EC2)__ for: **All G and VT Spot Instance Requests**.
+
+### AWSServiceRoleForEC2Spot - missing
+It might be that in your account you never worked before with spot instances and the service-linked role required is not yet created and you get for your `start` lambda the following error:
+`An error occurred (AuthFailure.ServiceLinkedRoleCreationNotPermitted) when calling the RunInstances operation: The provided credentials do not have permission to create the service-linked role for EC2 Spot Instances.`
+Solution run from your AWS CLI:
+```
+aws iam create-service-linked-role --aws-service-name spot.amazonaws.com
+```
+#### Or to create AWSServiceRoleForEC2Spot using the console:
+Open the IAM console at https://console.aws.amazon.com/iam/.
+- In the navigation pane, choose Roles.
+- Choose Create role.
+- On the Select type of trusted entity page, choose EC2, EC2 - Spot Instances, Next: Permissions.
+- On the next page, choose Next:Review.
+- On the Review page, choose Create role.
