@@ -21,7 +21,13 @@ def lambda_handler(event, context):
             SpotInstanceRequestIds=spot_request_id)
         ec2.terminate_instances(InstanceIds=instance_id)
     dynamo.terminate_system(item)
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Successfully finished request!')
-    }
+
+    remaining_credit = item['remaining_credit']
+    basic_credit = item['basic_credit']
+    remaining_credit_percent = remaining_credit * 100 / basic_credit
+    if remaining_credit_percent > 10:
+        item['system_status'] = 'remained_credits'
+    else:
+        item['system_status'] = 'terminated'
+
+    return item

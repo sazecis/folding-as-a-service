@@ -25,7 +25,7 @@ def lambda_handler(event, context):
         dynamo.terminate_system(item)
     return {
         'statusCode': 200,
-        'body': json.dumps('folding-S-symbiote-watcher coml!')
+        'body': json.dumps('folding-S-symbiote-watcher!')
     }
 
 def jsonify(map):

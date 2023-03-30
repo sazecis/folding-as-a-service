@@ -506,6 +506,20 @@ Resources:
             Parameters:
               FunctionName: ${terminateArn}
               Payload.$: $
+            Next: check_terminate_status
+          check_terminate_status:
+            Type: Choice
+            Choices:
+              - Variable: $.Payload.system_status
+                StringEquals: remained_credits
+                Next: init
+              - Variable: $.Payload.system_status
+                StringEquals: terminated
+                Next: the_end
+            Default: the_end
+          the_end:
+            Type: Pass
+            Result: Execution finished
             End: true
       Logging:
         Level: ALL
