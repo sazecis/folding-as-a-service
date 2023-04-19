@@ -21,10 +21,10 @@ def lambda_handler(event, context):
             SpotInstanceRequestIds=spot_request_id)
         ec2.terminate_instances(InstanceIds=instance_id)
     dynamo.terminate_system(item)
-
-    remaining_credit = item['remaining_credit']
+    dynamo_item = dynamo.get_system_data(item)
+    remaining_credit = dynamo_item['remaining_credit']
     basic_credit = item['basic_credit']
-    remaining_credit_percent = remaining_credit * 100 / basic_credit
+    remaining_credit_percent = int(remaining_credit) * 100 / int(basic_credit)
     if remaining_credit_percent > 10:
         item['system_status'] = 'remained_credits'
     else:

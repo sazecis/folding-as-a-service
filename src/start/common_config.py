@@ -40,7 +40,7 @@ credit_map = {
         MAP_KEY_FOLDING_TYPE: FOLDING_TYPE_CPU
     },
     CREDIT_TYPE_2: {
-        MAP_KEY_INSTANCE_TYPE: 'c5.xlarge',
+        MAP_KEY_INSTANCE_TYPE: 'g4dn.xlarge',
         MAP_KEY_FOLDING_TYPE: FOLDING_TYPE_CPU
     },
     CREDIT_TYPE_3: {
@@ -48,7 +48,7 @@ credit_map = {
         MAP_KEY_FOLDING_TYPE: FOLDING_TYPE_CPU_GPU
     },
     CREDIT_TYPE_4: {
-        MAP_KEY_INSTANCE_TYPE: 'g4dn.2xlarge',
+        MAP_KEY_INSTANCE_TYPE: 'g4dn.xlarge',
         MAP_KEY_FOLDING_TYPE: FOLDING_TYPE_CPU_GPU
     }
 }

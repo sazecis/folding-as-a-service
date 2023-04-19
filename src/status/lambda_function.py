@@ -19,11 +19,14 @@ def lambda_handler(event, context):
     node_state = ec2.getInstanceState(instance_data)
     remaining_credit = decimal.Decimal(item[REMAINING_CREDIT])
     spot_price = decimal.Decimal(item[INSTANCE_DATA][PRICE])
-    public_ip = ec2.getPublicIp(instance_data)
+    if node_state == 'running':
+        public_ip = ec2.getPublicIp(instance_data)
+        
 
     item[REMAINING_CREDIT] = credit.calculate_remaining_credit(remaining_credit, spot_price, node_state)
     item[SYSTEM_STATUS] = node_state
-    item[INSTANCE_DATA][PUBLIC_IP] = public_ip
+    if node_state == 'running':
+        item[INSTANCE_DATA][PUBLIC_IP] = public_ip
 
     dynamo.update_credit_and_public_ip(item)
 
