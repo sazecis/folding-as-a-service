@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=python /usr/bin/folding-s-symbiote.py
+ExecStart=/usr/local/bin/python /usr/bin/folding-s-symbiote.py
 
 [Install]
 WantedBy=multi-user.target 
