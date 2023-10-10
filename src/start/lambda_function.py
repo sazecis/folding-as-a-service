@@ -179,7 +179,7 @@ def generate_ec2_user_data(config, user, my_ip):
                    'wget ' + FOLDING_AT_HOME_RPM_URL + '\n'
                    'rpm -i --nodeps ' + FOLDING_AT_HOME_RPM_NAME + '\n'
                    'python -m pip install boto3' + '\n'
-                   'aws configure set default.region ' + common_config.REGION + '\n'
+                   'aws configure set region $(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | grep region | awk -F\" \'{print $4}\')' + '\n'
                    'instance_id=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)' + '\n'
                    'touch /usr/bin/foldingenv.py' + '\n'
                    'echo \"QUEUE_URL=\'' + QUEUE_URL + '\'\" >> /usr/bin/foldingenv.py' + '\n'
