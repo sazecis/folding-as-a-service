@@ -178,8 +178,6 @@ def generate_ec2_user_data(config, user, my_ip):
                    'git clone https://github.com/sazecis/folding-as-a-service.git' + '\n'
                    'wget ' + FOLDING_AT_HOME_RPM_URL + '\n'
                    'rpm -i --nodeps ' + FOLDING_AT_HOME_RPM_NAME + '\n'
-                   'python -m pip install boto3' + '\n'
-                   'aws configure set region $(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | grep region | awk -F\\\" \'{print $4}\')' + '\n'
                    'instance_id=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)' + '\n'
                    'touch /usr/bin/foldingenv.py' + '\n'
                    'echo \"QUEUE_URL=\'' + QUEUE_URL + '\'\" >> /usr/bin/foldingenv.py' + '\n'
@@ -192,8 +190,7 @@ def generate_ec2_user_data(config, user, my_ip):
                    'systemctl daemon-reload' + '\n'
                    'systemctl enable --now --no-block folding-s-symbiote.sentinel.service' + '\n'
                    'sleep 90' + '\n'
-                   'python folding-as-a-service/src/scripts/folding_config_creator.py ' +
-                   config + ' ' + my_ip + '\n'
+                   'python folding-as-a-service/src/scripts/folding_config_creator.py ' + config + ' ' + my_ip + '\n'
                    'cp config.xml /etc/fahclient/config.xml' + '\n'
                    'systemctl restart FAHClient.service' + '\n'
                    'reboot' + '\n'
