@@ -2,3 +2,4 @@
 .aws-composer
 .vscode
 *.toml
+.codecatalyst
