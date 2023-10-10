@@ -3,15 +3,25 @@ import boto3
 import time
 import logging
 import socket    
+import requests
 import foldingenv
 import folding_s_symbiote_inner_status
  
 log = logging.getLogger("folding-S-symbiote.log")
 
-sqs = boto3.client('sqs')
-
 idle_count = 0
 IDLE_THRESHOLD = 3
+
+response = requests.get(
+    "http://169.254.169.254/latest/dynamic/instance-identity/document")
+
+if response.status_code == 200:
+    data = response.json()
+    region = data.get("region", None)
+else:
+    print(f"Failed to fetch data. HTTP Status Code: {response.status_code}")
+
+sqs = boto3.client('sqs', region_name=region)
 
 while True:
 	folding_info = folding_s_symbiote_inner_status.getFoldingStatus()
